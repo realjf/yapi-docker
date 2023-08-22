@@ -1,37 +1,53 @@
-version: '2.1'
+# ##############################################################################
+# # File: docker-compose.yml                                                   #
+# # Project: yapi-docker                                                       #
+# # Created Date: 2023/08/22 17:04:44                                          #
+# # Author: realjf                                                             #
+# # -----                                                                      #
+# # Last Modified: 2023/08/22 17:04:51                                         #
+# # Modified By: realjf                                                        #
+# # -----                                                                      #
+# # Copyright (c) 2023                                                         #
+# ##############################################################################
+version: "3.8"
 services:
   yapi:
-    image: mrjin/yapi:latest
-    # build: ./
+    image: realjf/yapi:v1.12.0
     container_name: yapi
     environment:
-      - VERSION=1.10.2
+      - VERSION=1.12.0
       - HOME=/home
       - PORT=3000
-      - ADMIN_EMAIL=me@jinfeijie.cn
-      - DB_SERVER=mongo
+      - ADMIN_EMAIL=admin@example.com
+      - DB_SERVER=yapi-mongo
       - DB_NAME=yapi
       - DB_PORT=27017
-    # restart: always
+    restart: always
     ports:
-      - 127.0.0.1:3000:3000
+      - 3000:3000
     volumes:
-      - ~/data/yapi/log:/home/log # log dir
+      - ~/data/yapi/log:/home/log
     depends_on:
-      - mongo
-    entrypoint: "bash /wait-for-it.sh mongo:27017 -- entrypoint.sh"
+      - yapi-mongo
+    entrypoint: "bash /wait-for-it.sh yapi-mongo:27017 -- entrypoint.sh"
     networks:
-      - back-net
-  mongo:
+      - proxy
+  yapi-mongo:
     image: mongo
-    container_name: mongo
-    # restart: always
+    container_name: yapi-mongo
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=ji239f7&yh@
+      - MONGO_INITDB_DATABASE=yapi
     ports:
-      - 127.0.0.1:27017:27017
+      - 27017:27017
     volumes:
-      - ~/data/yapi/mongodb:/data/db #db dir
+      - /data/yapi/mongodb:/data/db
     networks:
-      - back-net
+      - proxy
 networks:
-  back-net:
+  proxy:
     external: true
+    name: nginx-proxy
